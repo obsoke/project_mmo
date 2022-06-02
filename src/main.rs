@@ -3,11 +3,12 @@
 use crate::components::{Enemy, FromPlayer, Movable, Velocity};
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
+mod animation;
 mod components;
 mod player;
 
 // Asset Constants - BEGIN
-const PLAYER_SPRITE: &str = "player.png";
+const PLAYER_SPRITE: &str = "character.png";
 // Asset Constants - END
 
 // Game Constants - BEGIN

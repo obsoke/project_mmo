@@ -1,3 +1,4 @@
+use crate::animation::{animate_sprite, AnimationTimer};
 use crate::components::{Movable, Player, Velocity};
 use crate::{GameTextures, BASE_SPEED, TIME_STEP};
 use bevy::{prelude::*, transform};
@@ -7,18 +8,28 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system_to_stage(StartupStage::PostStartup, player_spawn_system)
-            // .add_system(player_movement_system)
             .add_system(player_keyboard_event_system)
+            .add_system(animate_sprite)
             .add_system(player_attack_system);
     }
 }
 
-fn player_spawn_system(mut commands: Commands, game_textures: Res<GameTextures>) {
+fn player_spawn_system(
+    mut commands: Commands,
+    game_textures: Res<GameTextures>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
+    // create texture atlas
+    let texture_atlas =
+        TextureAtlas::from_grid(game_textures.player.clone(), Vec2::new(16., 32.), 4, 4);
+    let texture_atlas_handle = texture_atlases.add(texture_atlas);
     // add player
     commands
-        .spawn_bundle(SpriteBundle {
-            texture: game_textures.player.clone(),
+        .spawn_bundle(SpriteSheetBundle {
+            // texture: game_textures.player.clone(),
+            texture_atlas: texture_atlas_handle,
             transform: Transform {
+                scale: Vec3::new(4., 4., 1.),
                 ..Default::default()
             },
             ..Default::default()
@@ -27,6 +38,7 @@ fn player_spawn_system(mut commands: Commands, game_textures: Res<GameTextures>)
         .insert(Movable {
             auto_despawn: false,
         })
+        .insert(AnimationTimer(Timer::from_seconds(0.1, true)))
         .insert(Velocity(Vec2::new(0., 0.)));
 }
 
