@@ -158,9 +158,6 @@ pub fn animate_player_sprite_system(
             break;
         }
 
-        println!("current direction: {:?}", direction);
-        println!("current dir array: {:?}", current_direction_array);
-
         timer.tick(time.delta());
         if timer.just_finished() {
             let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
