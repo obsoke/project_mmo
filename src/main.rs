@@ -83,7 +83,7 @@ fn player_attack_enemy_system(
                 Vec2::ONE,
             );
 
-            if let Some(_) = collision {
+            if collision.is_some() {
                 // TODO: Do something?
                 // TODO: If enemy HP <=0, despawn
                 commands.entity(enemy_entity).despawn();

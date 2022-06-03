@@ -3,7 +3,7 @@ use crate::components::{Movable, Player, Velocity};
 use crate::{GameTextures, BASE_SPEED, TIME_STEP};
 use bevy::{prelude::*, transform};
 
-#[derive(Component, PartialEq, Debug)]
+#[derive(Component, Eq, PartialEq, Debug)]
 pub enum Direction {
     Up,
     Down,
@@ -27,7 +27,7 @@ const PLAYER_WALK_RIGHT_IDX: [usize; 4] = [4, 5, 6, 7];
 const PLAYER_WALK_UP_IDX: [usize; 4] = [8, 9, 10, 11];
 const PLAYER_WALK_LEFT_IDX: [usize; 4] = [12, 13, 14, 15];
 
-#[derive(PartialEq)]
+#[derive(Eq, PartialEq)]
 enum PlayerStates {
     Idle,
     Walking,
@@ -164,11 +164,9 @@ pub fn animate_player_sprite_system(
 
             // We have recently changed direction
             if !current_direction_array.contains(&sprite.index) {
-                println!("new");
                 sprite.index = current_direction_array[0];
             } else {
-                println!("current");
-                sprite.index = (sprite.index + 1); // % current_direction_array.len();
+                sprite.index += 1;
                 if sprite.index >= *current_direction_array.last().unwrap() {
                     sprite.index = current_direction_array[0];
                 }
