@@ -137,10 +137,9 @@ pub fn animate_player_sprite_system(
         &mut TextureAtlasSprite,
         &Direction,
         &PlayerState,
-        &Handle<TextureAtlas>,
     )>,
 ) {
-    for (mut timer, mut sprite, direction, player_state, texture_atlas_handle) in query.iter_mut() {
+    for (mut timer, mut sprite, direction, player_state) in query.iter_mut() {
         let current_direction_array = if *direction == Direction::Up {
             PLAYER_WALK_UP_IDX
         } else if *direction == Direction::Down {
@@ -160,8 +159,6 @@ pub fn animate_player_sprite_system(
 
         timer.tick(time.delta());
         if timer.just_finished() {
-            let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
-
             // We have recently changed direction
             if !current_direction_array.contains(&sprite.index) {
                 sprite.index = current_direction_array[0];
