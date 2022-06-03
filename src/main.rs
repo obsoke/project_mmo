@@ -37,6 +37,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
+        .add_system(bevy::input::system::exit_on_esc_system) // FOR DEV ONLY
         .add_plugin(player::PlayerPlugin)
         .add_startup_system(setup_system)
         .add_system(movable_system)
