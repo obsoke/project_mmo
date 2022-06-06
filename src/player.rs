@@ -1,26 +1,7 @@
 use crate::animation::AnimationTimer;
-use crate::components::{Movable, Player, Velocity};
+use crate::components::{Direction, Movable, Player, Velocity};
 use crate::{GameTextures, BASE_SPEED, TIME_STEP};
-use bevy::{prelude::*, transform};
-
-#[derive(Component, Eq, PartialEq, Debug)]
-pub enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-impl From<Direction> for Vec2 {
-    fn from(dir: Direction) -> Self {
-        match dir {
-            Direction::Up => Vec2::new(0., 1.),
-            Direction::Down => Vec2::new(0., -1.),
-            Direction::Left => Vec2::new(-1., 0.),
-            Direction::Right => Vec2::new(1., 0.),
-        }
-    }
-}
+use bevy::prelude::*;
 
 const PLAYER_WALK_DOWN_IDX: [usize; 4] = [0, 1, 2, 3];
 const PLAYER_WALK_RIGHT_IDX: [usize; 4] = [4, 5, 6, 7];
@@ -92,35 +73,30 @@ fn player_keyboard_event_system(
 ) {
     if let Ok((mut velocity, mut direction, mut player_state)) = query.get_single_mut() {
         velocity.0.x = if kb.pressed(KeyCode::Left) {
+            *direction = Direction::Left;
             -1.
         } else if kb.pressed(KeyCode::Right) {
+            *direction = Direction::Right;
             1.
         } else {
             0.
         };
 
         velocity.0.y = if kb.pressed(KeyCode::Up) {
+            *direction = Direction::Up;
             1.
         } else if kb.pressed(KeyCode::Down) {
+            *direction = Direction::Down;
             -1.
         } else {
             0.
         };
 
-        // Change direction based on velocity
-        if velocity.0 == Direction::Down.into() {
-            *direction = Direction::Down
-        } else if velocity.0 == Direction::Left.into() {
-            *direction = Direction::Left
-        } else if velocity.0 == Direction::Right.into() {
-            *direction = Direction::Right
-        } else if velocity.0 == Direction::Up.into() {
-            *direction = Direction::Up
-        };
-
         // Finalize/normalize current velocity
         velocity.0 = velocity.0.normalize_or_zero();
 
+        // Are we moving? If so, update state
+        // TODO: Should this be in another system?
         if velocity.0 == Vec2::ZERO {
             player_state.0 = PlayerStates::Idle;
         } else {
@@ -131,7 +107,6 @@ fn player_keyboard_event_system(
 
 pub fn animate_player_sprite_system(
     time: Res<Time>,
-    texture_atlases: Res<Assets<TextureAtlas>>,
     mut query: Query<(
         &mut AnimationTimer,
         &mut TextureAtlasSprite,
