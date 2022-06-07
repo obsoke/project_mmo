@@ -9,7 +9,7 @@ pub struct Movable {
     pub auto_despawn: bool, // TODO: Might not be necessary for my game...
 }
 
-#[derive(Component, Eq, PartialEq, Debug)]
+#[derive(Component, Eq, PartialEq, Copy, Clone, Debug)]
 pub enum Direction {
     Up,
     Down,
@@ -27,6 +27,9 @@ impl From<Direction> for Vec2 {
         }
     }
 }
+
+#[derive(Component)]
+pub struct PrevDirection(pub Direction);
 
 #[derive(Component)]
 pub struct SpriteSize(pub Vec2);
