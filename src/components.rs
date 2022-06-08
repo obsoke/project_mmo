@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::Rect};
 
 // COMMON COMPONENTS - START
 #[derive(Component)]
@@ -44,6 +44,14 @@ pub struct FromPlayer;
 
 #[derive(Component)]
 pub struct FromEnemy;
+
+/// The Hurtbox defines an area where an object can take damage.
+#[derive(Component)]
+pub struct Hurtbox(pub Rect);
+
+/// The Hitbox defines an area where damage can be dealt from.
+#[derive(Component)]
+pub struct Hitbox(pub Rect);
 // COMMON COMPONENTS - END
 
 // PLAYER COMPONENTS - START

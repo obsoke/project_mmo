@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use crate::components::{Enemy, FromPlayer, Movable, Velocity};
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
@@ -60,8 +58,9 @@ fn setup_system(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(game_textures);
 }
 
-fn movable_system(mut query: Query<(Entity, &Velocity, &mut Transform, &Movable)>) {
-    for (entity, velocity, mut transform, movable) in query.iter_mut() {
+fn movable_system(mut query: Query<(Entity, &Velocity, &mut Transform), With<Movable>>) {
+    // TODO: Do we need a reference to the entity here?
+    for (_entity, velocity, mut transform) in query.iter_mut() {
         let translation = &mut transform.translation;
         translation.x += velocity.0.x * TIME_STEP * BASE_SPEED;
         translation.y += velocity.0.y * TIME_STEP * BASE_SPEED;
@@ -70,10 +69,11 @@ fn movable_system(mut query: Query<(Entity, &Velocity, &mut Transform, &Movable)
 
 fn player_attack_enemy_system(
     mut commands: Commands,
-    attack_query: Query<(Entity, &Transform), (With<FromPlayer>)>,
+    attack_query: Query<(Entity, &Transform), With<FromPlayer>>,
     enemy_query: Query<(Entity, &Transform), With<Enemy>>,
 ) {
-    for (attack_entity, attack_tf) in attack_query.iter() {
+    // TODO: Do we need this "attack_entity" reference?
+    for (_attack_entity, attack_tf) in attack_query.iter() {
         for (enemy_entity, enemy_tf) in enemy_query.iter() {
             // determine collision
             let collision = collide(

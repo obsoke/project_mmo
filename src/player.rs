@@ -1,6 +1,6 @@
 use crate::animation::AnimationTimer;
-use crate::components::{Direction, Movable, Player, PrevDirection, Velocity};
-use crate::{GameTextures, BASE_SPEED, TIME_STEP};
+use crate::components::{Direction, Hitbox, Hurtbox, Movable, Player, PrevDirection, Velocity};
+use crate::GameTextures;
 use bevy::prelude::*;
 
 const PLAYER_WALK_DOWN_IDX: [usize; 4] = [0, 1, 2, 3];
@@ -16,15 +16,12 @@ const PLAYER_ATTACK_LEFT_IDX: [usize; 4] = [12, 13, 14, 15];
 #[derive(Component)]
 pub struct StateTimer(Timer);
 
-#[derive(Eq, PartialEq, Debug)]
-enum PlayerStates {
+#[derive(Component, Eq, PartialEq, Debug)]
+pub enum PlayerState {
     Idle,
     Walking,
     Attacking,
 }
-
-#[derive(Component, Debug)]
-pub struct PlayerState(PlayerStates);
 
 #[derive(Default)]
 pub struct PlayerTextureAtlas {
@@ -54,6 +51,7 @@ fn player_spawn_system(
     let mut texture_atlas_attack =
         TextureAtlas::new_empty(game_textures.player.clone(), Vec2::new(272., 256.));
 
+    // "Hacky" way of navigating a non-uniform sprite sheet to add items to a TextureAtlas
     for y in 0..4 {
         for x in 0..4 {
             let min_x = x as f32 * 32.;
@@ -85,7 +83,7 @@ fn player_spawn_system(
         .insert(Movable {
             auto_despawn: false,
         })
-        .insert(PlayerState(PlayerStates::Idle))
+        .insert(PlayerState::Idle)
         .insert(AnimationTimer(Timer::from_seconds(0.1, true)))
         .insert(Direction::Down)
         .insert(PrevDirection(Direction::Down))
@@ -153,13 +151,13 @@ fn player_keyboard_event_system(
             }
         } else {
             if velocity.0 == Vec2::ZERO {
-                player_state.0 = PlayerStates::Idle;
+                *player_state = PlayerState::Idle;
             } else if velocity.0 != Vec2::ZERO {
-                player_state.0 = PlayerStates::Walking;
+                *player_state = PlayerState::Walking;
             }
             if kb.just_pressed(KeyCode::Space) {
                 println!("setting state to attacking");
-                player_state.0 = PlayerStates::Attacking;
+                *player_state = PlayerState::Attacking;
                 commands
                     .entity(entity)
                     .insert(StateTimer(Timer::from_seconds(0.25, false)));
@@ -184,8 +182,8 @@ pub fn animate_player_sprite_system(
         query.iter_mut()
     {
         println!("state: {:?}", player_state);
-        let current_direction_array = match player_state.0 {
-            PlayerStates::Idle | PlayerStates::Walking => {
+        let current_direction_array = match player_state {
+            PlayerState::Idle | PlayerState::Walking => {
                 *atlas = player_tex_atlases.walk.clone();
                 if *direction == Direction::Up {
                     PLAYER_WALK_UP_IDX
@@ -199,7 +197,7 @@ pub fn animate_player_sprite_system(
                     [0, 0, 0, 0]
                 }
             }
-            PlayerStates::Attacking => {
+            PlayerState::Attacking => {
                 *atlas = player_tex_atlases.attack.clone();
                 if *direction == Direction::Up {
                     PLAYER_ATTACK_UP_IDX
@@ -217,7 +215,7 @@ pub fn animate_player_sprite_system(
 
         println!("dir {:?}, prev_dir: {:?}", direction, prev_direction.0);
 
-        if player_state.0 == PlayerStates::Idle {
+        if *player_state == PlayerState::Idle {
             sprite.index = current_direction_array[0];
             break;
         }
