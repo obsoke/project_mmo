@@ -9,4 +9,4 @@ resolver = "2" # Important! wgpu/Bevy needs this!
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.7"
+bevy = "0.8"

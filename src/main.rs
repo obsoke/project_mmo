@@ -1,5 +1,5 @@
 use crate::components::{Enemy, FromPlayer, Movable, Velocity};
-use bevy::{prelude::*, sprite::collide_aabb::collide};
+use bevy::{prelude::*, sprite::collide_aabb::collide, render::texture::ImageSettings};
 
 mod animation;
 mod components;
@@ -34,10 +34,11 @@ fn main() {
             width: 1280.0,
             ..Default::default()
         })
+        .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
-        .add_system(bevy::input::system::exit_on_esc_system) // FOR DEV ONLY
         .add_plugin(player::PlayerPlugin)
         .add_startup_system(setup_system)
+        .add_system(bevy::window::close_on_esc) // FOR DEV ONLY
         .add_system(movable_system)
         .add_system(player_attack_enemy_system)
         .run();
@@ -45,7 +46,7 @@ fn main() {
 
 fn setup_system(mut commands: Commands, asset_server: Res<AssetServer>) {
     // add a camera!
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(Camera2dBundle::default());
 
     // add WinSize resource
     let win_size = WinSize { w: 1280., h: 720. };
