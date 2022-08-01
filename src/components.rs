@@ -29,7 +29,19 @@ impl From<Direction> for Vec2 {
 }
 
 #[derive(Component)]
-pub struct PrevDirection(pub Direction);
+pub struct ObjectDirection {
+    pub current_direction: Direction,
+    pub previous_direction: Direction,
+}
+impl ObjectDirection {
+    pub fn new(current: Direction) -> Self {
+        Self {
+            current_direction: current,
+            previous_direction: current
+        }
+
+    }
+}
 
 #[derive(Component)]
 pub struct SpriteSize(pub Vec2);

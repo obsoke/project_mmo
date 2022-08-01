@@ -1,5 +1,5 @@
 use crate::animation::AnimationTimer;
-use crate::components::{Direction, Hitbox, Hurtbox, Movable, Player, PrevDirection, Velocity};
+use crate::components::{Direction, Hitbox, Hurtbox, Movable, Player, Velocity, ObjectDirection};
 use crate::GameTextures;
 use bevy::prelude::*;
 
@@ -85,9 +85,8 @@ fn player_spawn_system(
         })
         .insert(PlayerState::Idle)
         .insert(AnimationTimer(Timer::from_seconds(0.1, true)))
-        .insert(Direction::Down)
-        .insert(PrevDirection(Direction::Down))
-        .insert(Velocity(Vec2::new(0., 0.)));
+        .insert(ObjectDirection::new(Direction::Down))
+        .insert(Velocity(Vec2::ZERO));
 
     // add texture atlas resource for player
     commands.insert_resource(atlas_resource);
@@ -100,8 +99,7 @@ fn player_keyboard_event_system(
     mut query: Query<(
         Entity,
         &mut Velocity,
-        &mut Direction,
-        &mut PrevDirection,
+        &mut ObjectDirection,
         &mut PlayerState,
         Option<&mut StateTimer>,
     )>,
@@ -109,29 +107,28 @@ fn player_keyboard_event_system(
     if let Ok((
         entity,
         mut velocity,
-        mut direction,
-        mut prev_direction,
+        mut object_direction,
         mut player_state,
         state_timer,
     )) = query.get_single_mut()
     {
-        prev_direction.0 = *direction;
+        object_direction.previous_direction = object_direction.current_direction;
 
         // Movement handling
         velocity.0.x = if kb.pressed(KeyCode::Left) {
-            *direction = Direction::Left;
+            object_direction.current_direction = Direction::Left;
             -1.
         } else if kb.pressed(KeyCode::Right) {
-            *direction = Direction::Right;
+            object_direction.current_direction = Direction::Right;
             1.
         } else {
             0.
         };
         velocity.0.y = if kb.pressed(KeyCode::Up) {
-            *direction = Direction::Up;
+            object_direction.current_direction = Direction::Up;
             1.
         } else if kb.pressed(KeyCode::Down) {
-            *direction = Direction::Down;
+            object_direction.current_direction = Direction::Down;
             -1.
         } else {
             0.
@@ -144,7 +141,7 @@ fn player_keyboard_event_system(
         if let Some(mut timer) = state_timer {
             timer.0.tick(time.delta());
             if timer.0.just_finished() {
-                println!("done");
+                // println!("done");
                 commands.entity(entity).remove::<StateTimer>();
             } else {
                 // return;
@@ -156,7 +153,7 @@ fn player_keyboard_event_system(
                 *player_state = PlayerState::Walking;
             }
             if kb.just_pressed(KeyCode::Space) {
-                println!("setting state to attacking");
+                // println!("setting state to attacking");
                 *player_state = PlayerState::Attacking;
                 commands
                     .entity(entity)
@@ -173,25 +170,26 @@ pub fn animate_player_sprite_system(
         &mut AnimationTimer,
         &mut TextureAtlasSprite,
         &mut Handle<TextureAtlas>,
-        &Direction,
-        &PrevDirection,
+        &ObjectDirection,
         &PlayerState,
     )>,
 ) {
-    for (mut timer, mut sprite, mut atlas, direction, prev_direction, player_state) in
+    for (mut timer, mut sprite, mut atlas, object_direction, player_state) in
         query.iter_mut()
     {
-        println!("state: {:?}", player_state);
+        // println!("state: {:?}", player_state);
+        let direction = object_direction.current_direction;
         let current_direction_array = match player_state {
             PlayerState::Idle | PlayerState::Walking => {
                 *atlas = player_tex_atlases.walk.clone();
-                if *direction == Direction::Up {
+                let direction = object_direction.current_direction;
+                if direction == Direction::Up {
                     PLAYER_WALK_UP_IDX
-                } else if *direction == Direction::Down {
+                } else if direction == Direction::Down {
                     PLAYER_WALK_DOWN_IDX
-                } else if *direction == Direction::Left {
+                } else if direction == Direction::Left {
                     PLAYER_WALK_LEFT_IDX
-                } else if *direction == Direction::Right {
+                } else if direction == Direction::Right {
                     PLAYER_WALK_RIGHT_IDX
                 } else {
                     [0, 0, 0, 0]
@@ -199,13 +197,13 @@ pub fn animate_player_sprite_system(
             }
             PlayerState::Attacking => {
                 *atlas = player_tex_atlases.attack.clone();
-                if *direction == Direction::Up {
+                if direction == Direction::Up {
                     PLAYER_ATTACK_UP_IDX
-                } else if *direction == Direction::Down {
+                } else if direction == Direction::Down {
                     PLAYER_ATTACK_DOWN_IDX
-                } else if *direction == Direction::Left {
+                } else if direction == Direction::Left {
                     PLAYER_ATTACK_LEFT_IDX
-                } else if *direction == Direction::Right {
+                } else if direction == Direction::Right {
                     PLAYER_ATTACK_RIGHT_IDX
                 } else {
                     [0, 0, 0, 0]
@@ -213,7 +211,7 @@ pub fn animate_player_sprite_system(
             }
         };
 
-        println!("dir {:?}, prev_dir: {:?}", direction, prev_direction.0);
+        // println!("dir {:?}, prev_dir: {:?}", direction, prev_direction.0);
 
         if *player_state == PlayerState::Idle {
             sprite.index = current_direction_array[0];
