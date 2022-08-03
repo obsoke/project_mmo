@@ -1,4 +1,5 @@
 use bevy::{prelude::*, sprite::Rect};
+use bevy_inspector_egui::Inspectable;
 
 // COMMON COMPONENTS - START
 #[derive(Component)]
@@ -6,6 +7,7 @@ pub struct Velocity(pub Vec2);
 
 #[derive(Component)]
 pub struct Movable {
+    pub speed: f32,
     pub auto_despawn: bool, // TODO: Might not be necessary for my game...
 }
 
@@ -37,9 +39,8 @@ impl ObjectDirection {
     pub fn new(current: Direction) -> Self {
         Self {
             current_direction: current,
-            previous_direction: current
+            previous_direction: current,
         }
-
     }
 }
 
@@ -58,16 +59,38 @@ pub struct FromPlayer;
 pub struct FromEnemy;
 
 /// The Hurtbox defines an area where an object can take damage.
-#[derive(Component)]
-pub struct Hurtbox(pub Rect);
+#[derive(Component, Default)]
+pub struct Hurtbox {
+    pub size: Vec2,
+    pub offset: Vec2,
+}
+impl Hurtbox {
+    pub fn new(size: Vec2, offset: Option<Vec2>) -> Self {
+        Self {
+            size,
+            offset: offset.unwrap_or_default(),
+        }
+    }
+}
 
 /// The Hitbox defines an area where damage can be dealt from.
-#[derive(Component)]
-pub struct Hitbox(pub Rect);
+#[derive(Component, Default)]
+pub struct Hitbox {
+    pub size: Vec2,
+    pub offset: Vec2,
+}
+impl Hitbox {
+    pub fn new(size: Vec2, offset: Option<Vec2>) -> Self {
+        Self {
+            size,
+            offset: offset.unwrap_or_default(),
+        }
+    }
+}
 // COMMON COMPONENTS - END
 
 // PLAYER COMPONENTS - START
-#[derive(Component)]
+#[derive(Component, Inspectable)]
 pub struct Player;
 // PLAYER COMPONENTS - END
 

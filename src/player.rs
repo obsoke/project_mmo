@@ -1,5 +1,5 @@
 use crate::animation::AnimationTimer;
-use crate::components::{Direction, Hitbox, Hurtbox, Movable, Player, Velocity, ObjectDirection};
+use crate::components::{Direction, Hitbox, Hurtbox, Movable, ObjectDirection, Player, Velocity};
 use crate::GameTextures;
 use bevy::prelude::*;
 
@@ -81,6 +81,7 @@ fn player_spawn_system(
         })
         .insert(Player)
         .insert(Movable {
+            speed: 500.,
             auto_despawn: false,
         })
         .insert(PlayerState::Idle)
@@ -104,13 +105,8 @@ fn player_keyboard_event_system(
         Option<&mut StateTimer>,
     )>,
 ) {
-    if let Ok((
-        entity,
-        mut velocity,
-        mut object_direction,
-        mut player_state,
-        state_timer,
-    )) = query.get_single_mut()
+    if let Ok((entity, mut velocity, mut object_direction, mut player_state, state_timer)) =
+        query.get_single_mut()
     {
         object_direction.previous_direction = object_direction.current_direction;
 
@@ -174,9 +170,7 @@ pub fn animate_player_sprite_system(
         &PlayerState,
     )>,
 ) {
-    for (mut timer, mut sprite, mut atlas, object_direction, player_state) in
-        query.iter_mut()
-    {
+    for (mut timer, mut sprite, mut atlas, object_direction, player_state) in query.iter_mut() {
         // println!("state: {:?}", player_state);
         let direction = object_direction.current_direction;
         let current_direction_array = match player_state {

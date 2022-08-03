@@ -1,18 +1,14 @@
 use crate::components::{Enemy, FromPlayer, Movable, Velocity};
-use bevy::{prelude::*, sprite::collide_aabb::collide, render::texture::ImageSettings};
+use bevy::{prelude::*, render::texture::ImageSettings, sprite::collide_aabb::collide};
 
 mod animation;
 mod components;
+mod debug;
 mod player;
 
 // Asset Constants - BEGIN
 const PLAYER_SPRITE: &str = "character.png";
 // Asset Constants - END
-
-// Game Constants - BEGIN
-const TIME_STEP: f32 = 1. / 60.;
-const BASE_SPEED: f32 = 500.;
-// Game Constants - END
 
 // Resources - BEGIN
 pub struct WinSize {
@@ -36,6 +32,7 @@ fn main() {
         })
         .insert_resource(ImageSettings::default_nearest())
         .add_plugins(DefaultPlugins)
+        .add_plugin(debug::DebugPlugin)
         .add_plugin(player::PlayerPlugin)
         .add_startup_system(setup_system)
         .add_system(bevy::window::close_on_esc) // FOR DEV ONLY
@@ -59,12 +56,15 @@ fn setup_system(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(game_textures);
 }
 
-fn movable_system(mut query: Query<(Entity, &Velocity, &mut Transform), With<Movable>>) {
+fn movable_system(
+    mut query: Query<(Entity, &Movable, &Velocity, &mut Transform)>,
+    time: Res<Time>,
+) {
     // TODO: Do we need a reference to the entity here?
-    for (_entity, velocity, mut transform) in query.iter_mut() {
+    for (_entity, movable, velocity, mut transform) in query.iter_mut() {
         let translation = &mut transform.translation;
-        translation.x += velocity.0.x * TIME_STEP * BASE_SPEED;
-        translation.y += velocity.0.y * TIME_STEP * BASE_SPEED;
+        translation.x += velocity.0.x * time.delta_seconds() * movable.speed;
+        translation.y += velocity.0.y * time.delta_seconds() * movable.speed;
     }
 }
 
